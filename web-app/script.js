@@ -128,34 +128,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === 4. Demo Flow Logic ===
     const demoBtn = document.getElementById('demo-start-btn');
+
     if (demoBtn) {
         demoBtn.addEventListener('click', async () => {
             demoBtn.disabled = true;
             demoBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> デモ実行中...';
 
-            addMessage("デモモードを開始します。ダミーの有価証券報告書を読み込んでいます...", "ai");
+            addMessage("デモモードを開始します。ダミーの有価証券報告書を仮想スロットに装填しています...", "ai");
 
-            await new Promise(r => setTimeout(r, 2000));
-            addMessage("有価証券報告書のPDF解析が完了しました。SSBJ S2基準に基づき、ギャップを特定しました。", "ai");
+            // 1. Dashboard Phase
+            await new Promise(r => setTimeout(r, 1500));
+            addMessage("企業の活動領域を特定。SSBJ要求事項との照合を開始します。", "ai");
 
+            // Update Radar Chart with animation feeling
             gapChart.data.datasets[0].label = "分析後 (2024年実績)";
             gapChart.data.datasets[0].data = [85, 40, 55, 70, 20, 90];
             gapChart.data.datasets[0].backgroundColor = "rgba(0, 242, 254, 0.2)";
             gapChart.data.datasets[0].borderColor = "#00f2fe";
             gapChart.update();
 
-            addMessage("ダッシュボードの充足度マップを更新しました。次に、新旧対照表を確認します。", "ai");
-
+            // 2. File Upload Simulation
             await new Promise(r => setTimeout(r, 1500));
             switchView('comparison');
+            const sourcePanel = document.getElementById('source-panel');
+            sourcePanel.style.display = 'block';
 
-            addMessage("前期開示内容と、SSBJ準拠のAI生成ドラフトを対照しています。移行リスクの定量的開示が不足していることが判明しました。", "ai");
+            companyFileList.innerHTML = '<li><i class="fas fa-spinner fa-spin"></i> 2024_Securities_Report.pdf を解析中...</li>';
 
             await new Promise(r => setTimeout(r, 2000));
+            companyFileList.innerHTML = '<li><i class="fas fa-check-circle text-success"></i> 2024_Securities_Report.pdf (解析済)</li>';
+            addMessage("報告書のテキスト抽出に成功。第2フェーズ：新旧対照分析に移行します。", "ai");
+
+            // 3. Analysis Simulation
+            const startSeriousBtn = document.getElementById('start-serious-analysis');
+            if (startSeriousBtn) {
+                startSeriousBtn.click(); // Trigger the actual analysis UI logic
+            }
+
+            await new Promise(r => setTimeout(r, 3000));
+            addMessage("分析が完了しました。重大なギャップが見つかったため、財務影響シミュレーションへ誘導します。", "ai");
+
+            // 4. Simulation Phase
+            await new Promise(r => setTimeout(r, 1500));
             switchView('simulation');
-            addMessage("財務影響シミュレーション画面へ移動しました。炭素価格の上昇やScope 3各カテゴリの削減シナリオを検証可能です。", "ai");
+            setTimeout(() => {
+                const runSimBtn = document.getElementById('run-simulation');
+                if (runSimBtn) runSimBtn.click();
+            }, 1000);
 
             demoBtn.innerHTML = '<i class="fas fa-check"></i> デモ完了';
+            demoBtn.style.background = 'linear-gradient(95deg, #059669, #10b981)';
             demoBtn.disabled = false;
         });
     }
@@ -457,8 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // File Upload handling
-    const reportUpload = document.getElementById('report-upload-input');
-    const companyFileList = document.getElementById('company-file-list');
     if (reportUpload) {
         reportUpload.addEventListener('change', (e) => {
             const files = e.target.files;
