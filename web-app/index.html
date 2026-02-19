@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSBJ AI Consultant | Premium Sustainability Platform</title>
+    <meta name="description" content="SSBJ基準に準拠した開示作成を支援する、次世代AIコンサルティングプラットフォーム。">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google API & Gemini SDK -->
+    <script async defer src="https://apis.google.com/js/api.js"></script>
+    <script async defer src="https://accounts.google.com/gsi/client"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <span class="logo-text">SSBJ<span>AI</span></span>
+            </div>
+            <!-- API Connection Status -->
+            <div class="api-status-box" style="padding: 0 1.5rem 1rem;">
+                <div id="gemini-status" class="status-badge"
+                    style="font-size: 0.7rem; background: rgba(0,242,254,0.05); border: 1px solid rgba(0,242,254,0.2); padding: 4px 8px; border-radius: 4px; color: var(--accent-blue); display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="pulse-dot"></span> AI Agent: <span id="agent-state">Standby</span>
+                </div>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-phase="overview">
+                    <i class="fas fa-th-large"></i> <span>概要ダッシュボード</span>
+                </a>
+                <div class="nav-section">思考プロセス</div>
+                <a href="#" class="nav-item active" data-phase="overview">
+                    <i class="fas fa-th-large"></i> <span>ダッシュボード</span>
+                </a>
+                <a href="#" class="nav-item" data-phase="comparison">
+                    <i class="fas fa-sync-alt"></i> <span>新旧対照・PDF分析</span>
+                </a>
+                <a href="#" class="nav-item" data-phase="simulation">
+                    <i class="fas fa-chart-line"></i> <span>財務影響シミュレーション</span>
+                </a>
+                <a href="#" class="nav-item" data-phase="evidence">
+                    <i class="fas fa-shield-alt"></i> <span>監査証跡・エビデンス</span>
+                </a>
+                <div class="nav-section">全4フェーズ</div>
+                <a href="#" class="nav-item" data-phase="p1">
+            </nav>
+            <div class="user-profile">
+                <div class="avatar">EB</div>
+                <div class="profile-info">
+                    <div class="name">石橋 氏</div>
+                    <div class="role">シニアコンサルタント</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="基準書またはデータを検索...">
+                </div>
+                <div class="header-actions">
+                    <div class="agent-status">
+                        <span class="status-dot online"></span>
+                        AI Agent: Active
+                    </div>
+                    <button class="btn btn-primary" id="demo-start-btn"
+                        style="background: linear-gradient(95deg, #f59e0b, #d97706); margin-right: 1rem;">
+                        <i class="fas fa-play"></i> デモ開始
+                    </button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-file-export"></i> エクスポート
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-body" id="dynamic-content">
+                <!-- Dashboard Default View -->
+                <div class="view-section active" id="view-overview">
+                    <div class="dashboard-grid">
+                        <div class="card glass hero-card">
+                            <div class="hero-content">
+                                <h1>次世代SSBJ開示支援</h1>
+                                <p>マルチエージェントAIが、貴社のサステナビリティ開示を戦略的な武器に昇華させます。</p>
+                                <div class="hero-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-value">84%</span>
+                                        <span class="stat-label">コンプライアンス充足度</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">12</span>
+                                        <span class="stat-label">要改善項目</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="hero-image-placeholder ripple-container" id="hero-image">
+                                <div class="data-globe"></div>
+                            </div>
+                        </div>
+
+                        <div class="card glass chat-card">
+                            <div class="card-header">
+                                <h3>AIコンサルタント対話</h3>
+                                <button class="btn-icon"><i class="fas fa-ellipsis-h"></i></button>
+                            </div>
+                            <div class="chat-messages" id="chat-box">
+                                <div class="message ai">
+                                    <div class="message-content">
+                                        こんにちは。SSBJ対応に向けた「マテリアリティの財務影響評価」を開始しますか？
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chat-input-area">
+                                <input type="text" placeholder="質問を入力してください...">
+                                <button class="send-btn"><i class="fas fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="card glass chart-card">
+                            <div class="card-header">
+                                <h3>開示ギャップ分析</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="gapChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="card glass task-card">
+                            <div class="card-header">
+                                <h3>ネクストアクション</h3>
+                            </div>
+                            <ul class="task-list">
+                                <li>
+                                    <div class="checkbox done"></div>
+                                    <span>1.1 企業プロファイルの解析</span>
+                                </li>
+                                <li>
+                                    <div class="checkbox doing"></div>
+                                    <span>2.1 内部ナレッジの探索</span>
+                                </li>
+                                <li>
+                                    <div class="checkbox"></div>
+                                    <span>3.1 シナリオ分析の実行</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison View -->
+                <div class="view-section" id="view-comparison">
+                    <div class="comparison-header">
+                        <h2>本格分析：新旧対照・文案生成</h2>
+                        <div class="file-upload-actions">
+                            <button class="btn btn-outline" id="manage-sources-btn"><i class="fas fa-database"></i>
+                                ナレッジソース管理</button>
+                            <button class="btn btn-primary" id="start-serious-analysis"><i class="fas fa-magic"></i>
+                                分析を実行</button>
+                            <button class="btn btn-outline" id="export-word-btn"
+                                style="border-color: #2b5797; color: #2b5797; display: none;">
+                                <i class="fas fa-file-word"></i> Word形式で出力
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Source Management Panel (Initially Hidden) -->
+                    <div class="card glass source-panel" id="source-panel" style="display: none; margin-bottom: 2rem;">
+                        <div class="source-grid">
+                            <div class="source-item">
+                                <h3>SSBJ基準ソース (外部連携)</h3>
+                                <div class="source-actions" style="margin-bottom: 1rem;">
+                                    <button class="btn btn-xs gdrive-btn" id="gdrive-connect-btn">
+                                        <i class="fab fa-google-drive"></i> GDrive URLを指定
+                                    </button>
+                                </div>
+                                <ul class="file-list" id="ssbj-file-list">
+                                    <li class="drive-status-item"><i class="fas fa-link text-secondary"></i>
+                                        ドライブを指定してください</li>
+                                </ul>
+                            </div>
+                            <div class="source-item">
+                                <h3>対象企業有報・統合報告書 (アップロード)</h3>
+                                <div class="source-actions" style="margin-bottom: 1rem;">
+                                    <input type="file" id="report-upload-input" style="display: none;" multiple>
+                                    <button class="btn btn-xs btn-outline"
+                                        onclick="document.getElementById('report-upload-input').click()">
+                                        <i class="fas fa-plus"></i> サンプル有報を選択
+                                    </button>
+                                </div>
+                                <ul class="file-list" id="company-file-list">
+                                    <li><i class="fas fa-info-circle text-secondary"></i> ファイルを選択してください</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comparison-container card glass">
+                        <div class="comparison-table-wrapper">
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th width="15%">開示項目</th>
+                                        <th width="25%">現状の記述 (ソース参照)</th>
+                                        <th width="40%">SSBJ準拠：推奨文案</th>
+                                        <th width="20%">AI推論ロジック</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="comparison-results-body">
+                                    <!-- Results will be injected here -->
+                                    <tr class="placeholder-row">
+                                        <td colspan="4"
+                                            style="text-align: center; color: var(--text-secondary); padding: 4rem;">
+                                            ナレッジソースを選択し、「本気で分析を実行」をクリックしてください
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation View -->
+                <div class="view-section" id="view-simulation">
+                    <div class="simulation-layout">
+                        <div class="card glass simulation-controls">
+                            <h3>シミュレーション・パラメータ</h3>
+                            <div class="control-group">
+                                <label>炭素価格 ($/tCO2)</label>
+                                <input type="range" min="0" max="250" value="140" class="slider">
+                                <div class="slider-val">$140</div>
+                            </div>
+                            <div class="control-group">
+                                <label>気温上昇シナリオ</label>
+                                <select class="form-select">
+                                    <option>1.5℃ シナリオ (NZE)</option>
+                                    <option>2.0℃ シナリオ (APS)</option>
+                                    <option>4.0℃ シナリオ (STEPS)</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label>Scope 3 カテゴリ選択</label>
+                                <select class="form-select" id="scope3-category-select">
+                                    <option value="1">カテゴリ1：購入した製品・サービス</option>
+                                    <option value="2">カテゴリ2：資本財</option>
+                                    <option value="3">カテゴリ3：Scope 1,2に含まれない燃料・エネルギー</option>
+                                    <option value="4">カテゴリ4：輸送・配送（上流）</option>
+                                    <option value="5">カテゴリ5：事業から出る廃棄物</option>
+                                    <option value="6">カテゴリ6：出張</option>
+                                    <option value="7">カテゴリ7：雇用者の通勤</option>
+                                    <option value="8">カテゴリ8：リース資産（上流）</option>
+                                    <option value="9">カテゴリ9：輸送・配送（下流）</option>
+                                    <option value="10">カテゴリ10：販売した製品の加工</option>
+                                    <option value="11">カテゴリ11：販売した製品の使用</option>
+                                    <option value="12">カテゴリ12：販売した製品の廃棄</option>
+                                    <option value="13">カテゴリ13：リース資産（下流）</option>
+                                    <option value="14">カテゴリ14：フランチャイズ</option>
+                                    <option value="15">カテゴリ15：投資</option>
+                                </select>
+                                <button class="btn btn-xs btn-outline btn-block" style="margin-top: 0.5rem;"
+                                    id="add-category-btn">構成に追加</button>
+                            </div>
+                            <div class="control-group">
+                                <label>選択中のカテゴリ削減目標</label>
+                                <div id="active-categories-list">
+                                    <!-- Dynamic list of sliders will appear here -->
+                                    <div class="category-slider-item" data-cat="1">
+                                        <div class="cat-label">Cat.1: 20% 削減</div>
+                                        <input type="range" min="0" max="100" value="20"
+                                            class="slider scope3-dyn-slider">
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-block" id="run-simulation">試算実行</button>
+                        </div>
+                        <div class="card glass simulation-results">
+                            <h3>財務影響予測 (2025-2050)</h3>
+                            <div class="chart-container large">
+                                <canvas id="simChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evidence View -->
+                <div class="view-section" id="view-evidence">
+                    <div class="evidence-grid">
+                        <div class="card glass">
+                            <h3>監査証跡パッケージ (Traceability)</h3>
+                            <div class="evidence-stats">
+                                <div class="stat"><span>総数値数</span><strong>142</strong></div>
+                                <div class="stat"><span>エビデンス紐付済</span><strong>128</strong></div>
+                                <div class="stat"><span>要確認</span><strong class="warning">14</strong></div>
+                            </div>
+                            <table class="evidence-table">
+                                <thead>
+                                    <tr>
+                                        <th>項目</th>
+                                        <th>数値</th>
+                                        <th>根拠ファイル</th>
+                                        <th>監査ステータス</th>
+                                        <th>監査人・担当者メモ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Scope 1 (国内)</td>
+                                        <td>12,450 t-CO2</td>
+                                        <td><i class="far fa-file-excel text-success"></i> 2024_FactData.xlsx
+                                            [Sheet1!C4]</td>
+                                        <td><span class="status-indicator verified">確認済</span></td>
+                                        <td>
+                                            <div class="audit-note">
+                                                <i class="fas fa-check-circle text-success"></i>
+                                                <span>過年度との算定基準の不整合なし。</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Scope 3 Cat.1 (原材料)</td>
+                                        <td>842,000 t-CO2</td>
+                                        <td><i class="far fa-file-alt"></i> Supplier_Survey_Summary.pdf</td>
+                                        <td><span class="status-indicator pending">検証中</span></td>
+                                        <td>
+                                            <button class="btn btn-xs btn-outline add-note-btn"><i
+                                                    class="fas fa-pen"></i> メモ追加</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>炭素税影響額</td>
+                                        <td>-1.2 億円</td>
+                                        <td><i class="far fa-file-pdf text-danger"></i> IEA_WEO2024.pdf [p.34]</td>
+                                        <td><span class="status-indicator pending">検証中</span></td>
+                                        <td>
+                                            <div class="audit-note warning">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                <span>参照シナリオの版数を確認中。</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Calculation Logic Modal -->
+    <div class="modal-overlay" id="calc-modal">
+        <div class="card glass modal-content">
+            <div class="card-header">
+                <h3><i class="fas fa-calculator"></i> 算定ロジック詳細</h3>
+                <button class="btn-icon" id="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="formula-box">
+                    <p class="formula-label">炭素税影響額の計算式：</p>
+                    <code>財務影響 = Σ (排出量(t-CO2) × 炭素価格差分($/t) × 為替レート) × (1 - 削減貢献度)</code>
+                </div>
+                <div class="logic-details">
+                    <h4>適用シナリオパラメータ：</h4>
+                    <ul>
+                        <li>IEA NZE 2050 シナリオ準拠</li>
+                        <li>2030年想定価格: $140/t-CO2</li>
+                        <li>社会資本コスト (WACC): 5.2%</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Drive Connection Modal -->
+    <div class="modal-overlay" id="gdrive-modal">
+        <div class="card glass modal-content" style="width: 500px;">
+            <div class="card-header">
+                <h3><i class="fab fa-google-drive" style="color: #34a853;"></i> Google Drive 連携</h3>
+                <button class="btn-icon" id="close-gdrive-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="control-group">
+                    <label>Google Cloud Client ID</label>
+                    <input type="password" class="form-input" id="gdrive-client-id"
+                        placeholder="Google Console Client ID"
+                        style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; margin-bottom: 1rem;">
+
+                    <label>Gemini API Key</label>
+                    <input type="password" class="form-input" id="gemini-api-key"
+                        placeholder="Gemini API Key for AI Agent"
+                        style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; margin-bottom: 1rem;">
+
+                    <label>フォルダ URL / ファイル ID</label>
+                    <input type="text" class="form-input" id="gdrive-url-input"
+                        placeholder="https://drive.google.com/drive/folders/..."
+                        style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.7rem; color: var(--text-secondary); line-height: 1.4;">
+                    ※ リアルな連携には Google Cloud Console での OAuth 設定と、Gemini API キーが必要です。
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <button class="btn btn-primary btn-block" id="confirm-gdrive-btn">AI エージェントを起動</button>
+                    <button class="btn btn-outline btn-block" id="use-sample-gdrive" style="font-size: 0.8rem;">
+                        <i class="fas fa-magic"></i> デモ用サンプル（シミュレーション）
+                    </button>
+                </div>
+                <div id="gdrive-sync-status" style="margin-top: 1rem; font-size: 0.8rem; display: none;">
+                    <i class="fas fa-sync fa-spin"></i> フォルダ権限を検証中...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
