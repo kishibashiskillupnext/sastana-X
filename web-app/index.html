@@ -5,25 +5,486 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SSBJ AI Consultant | Premium Sustainability Platform</title>
-    <meta name="description" content="SSBJ基準に準拠した開示作成を支援する、次世代AIコンサルティングプラットフォーム。">
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google API & Gemini SDK -->
-    <script async defer src="https://apis.google.com/js/api.js"></script>
-    <script async defer src="https://accounts.google.com/gsi/client"></script>
-    <script type="importmap">
-      {
-        "imports": {
-          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+    <style>
+        :root {
+            --bg-dark: #07090d;
+            --bg-card: rgba(15, 18, 25, 0.7);
+            --accent-blue: #00f2fe;
+            --accent-purple: #4f46e5;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --sidebar-width: 280px;
+            --transition-speed: 0.3s;
         }
-      }
-    </script>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
+            line-height: 1.6;
+            height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #0d1117;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 3rem;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text span {
+            color: var(--accent-blue);
+        }
+
+        .nav-menu {
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            transition: all var(--transition-speed);
+            cursor: pointer;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(79, 70, 229, 0.2), transparent);
+            border-left: 3px solid var(--accent-purple);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fceabb, #f8b500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #000;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            height: 100vh;
+            overflow-y: auto;
+            position: relative;
+            background: radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.03) 0%, transparent 100%);
+        }
+
+        .top-header {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 3rem;
+            background: rgba(7, 9, 13, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            width: 400px;
+        }
+
+        .search-bar input {
+            background: none;
+            border: none;
+            color: white;
+            width: 100%;
+            outline: none;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.75rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent-purple);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .content-body {
+            padding: 2.5rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Dashboard Grid */
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-auto-rows: min-content;
+            gap: 1.5rem;
+        }
+
+        .card {
+            border-radius: 24px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-card {
+            grid-column: span 12;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3rem;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(0, 242, 254, 0.1));
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .chat-card {
+            grid-column: span 7;
+            height: 450px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-card {
+            grid-column: span 5;
+            height: 450px;
+        }
+
+        .task-card {
+            grid-column: span 12;
+        }
+
+        /* Chart/Map styling */
+        .chart-container {
+            height: 320px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .large {
+            height: 400px;
+        }
+
+        /* Physical Grid */
+        .physical-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            position: relative;
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .abstract-map {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.05) 0%, transparent 80%);
+        }
+
+        .map-node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            box-shadow: 0 0 10px var(--accent-blue);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .map-node:hover {
+            transform: scale(2.5);
+            z-index: 10;
+        }
+
+        .map-node.hot {
+            background: #ef4444;
+            box-shadow: 0 0 15px #ef4444;
+        }
+
+        .map-node.warning {
+            background: #f59e0b;
+            box-shadow: 0 0 15px #f59e0b;
+        }
+
+        /* Messages */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+        }
+
+        .message-content {
+            padding: 1rem;
+            border-radius: 12px;
+            max-width: 85%;
+            font-size: 0.9rem;
+        }
+
+        .message.ai .message-content {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.5rem;
+            border-radius: 12px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: white;
+            outline: none;
+        }
+
+        .send-btn {
+            background: var(--accent-purple);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            width: 500px;
+            max-width: 90vw;
+            background: #0d1117;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Tables */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .comparison-table th {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.85rem;
+        }
+
+        /* Utils */
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-anim 2s infinite;
+        }
+
+        @keyframes pulse-anim {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .text-success {
+            color: #10b981;
+        }
+
+        .text-danger {
+            color: #ef4444;
+        }
+
+        .text-warning {
+            color: #f59e0b;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -34,35 +495,30 @@
                 <div class="logo-icon"></div>
                 <span class="logo-text">SSBJ<span>AI</span></span>
             </div>
-            <!-- API Connection Status -->
-            <div class="api-status-box" style="padding: 0 1.5rem 1rem;">
-                <div id="gemini-status" class="status-badge"
-                    style="font-size: 0.7rem; background: rgba(0,242,254,0.05); border: 1px solid rgba(0,242,254,0.2); padding: 4px 8px; border-radius: 4px; color: var(--accent-blue); display: flex; align-items: center; gap: 0.5rem;">
+            <div class="api-status-box" style="margin-bottom: 2rem;">
+                <div id="gemini-status" class="status-badge" style="font-size: 0.7rem; color: var(--accent-blue);">
                     <span class="pulse-dot"></span> AI Agent: <span id="agent-state">Standby</span>
                 </div>
             </div>
             <nav class="nav-menu">
-                <a href="#" class="nav-item active" data-phase="overview">
+                <div class="nav-item active" onclick="switchView('overview')">
                     <i class="fas fa-th-large"></i> <span>ダッシュボード</span>
-                </a>
-                <a href="#" class="nav-item" data-phase="comparison">
+                </div>
+                <div class="nav-item" onclick="switchView('comparison')">
                     <i class="fas fa-sync-alt"></i> <span>新旧対照・PDF分析</span>
-                </a>
-                <a href="#" class="nav-item" data-phase="simulation">
-                    <i class="fas fa-chart-line"></i> <span>財務影響シミュレーション</span>
-                </a>
-                <a href="#" class="nav-item" data-phase="physical">
-                    <i class="fas fa-cloud-showers-heavy"></i> <span>物理的リスク解析 (S1/S2)</span>
-                </a>
-                <a href="#" class="nav-item" data-phase="evidence">
-                    <i class="fas fa-shield-alt"></i> <span>監査証跡・エビデンス</span>
-                </a>
+                </div>
+                <div class="nav-item" onclick="switchView('simulation')">
+                    <i class="fas fa-chart-line"></i> <span>財務シミュレーション</span>
+                </div>
+                <div class="nav-item" onclick="switchView('physical')">
+                    <i class="fas fa-cloud-showers-heavy"></i> <span>物理的リスク解析</span>
+                </div>
             </nav>
             <div class="user-profile">
                 <div class="avatar">EB</div>
                 <div class="profile-info">
-                    <div class="name">石橋 氏</div>
-                    <div class="role">シニアコンサルタント</div>
+                    <div style="font-size: 0.9rem; font-weight: 600;">石橋 氏</div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary);">シニアコンサルタント</div>
                 </div>
             </div>
         </aside>
@@ -72,25 +528,21 @@
             <header class="top-header">
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="基準書またはデータを検索...">
+                    <input type="text" id="global-search" placeholder="基準書またはデータを検索...">
                 </div>
                 <div class="header-actions">
-                    <div class="agent-status">
-                        <span class="status-dot online"></span>
-                        AI Agent: Active
-                    </div>
-                    <button class="btn btn-primary" id="demo-start-btn"
-                        style="background: linear-gradient(95deg, #f59e0b, #d97706); margin-right: 1rem;">
+                    <button class="btn" id="demo-start-btn"
+                        style="background: linear-gradient(95deg, #f59e0b, #d97706); font-size: 0.8rem; color: white;">
                         <i class="fas fa-play"></i> デモ開始
                     </button>
-                    <button class="btn btn-primary">
+                    <button class="btn btn-outline" style="font-size: 0.8rem;" onclick="alert('開示パッケージ一式を生成します')">
                         <i class="fas fa-file-export"></i> エクスポート
                     </button>
                 </div>
             </header>
 
-            <div class="content-body" id="dynamic-content">
-                <!-- Dashboard Default View -->
+            <div class="content-body">
+                <!-- Overview View -->
                 <div class="view-section active" id="view-overview">
                     <div class="dashboard-grid">
                         <div class="card glass hero-card">
@@ -100,7 +552,7 @@
                                 <div class="hero-stats">
                                     <div class="stat-item">
                                         <span class="stat-value">84%</span>
-                                        <span class="stat-label">コンプライアンス充足度</span>
+                                        <span class="stat-label">要求事項充足度</span>
                                     </div>
                                     <div class="stat-item">
                                         <span class="stat-value">12</span>
@@ -108,16 +560,13 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="hero-image-placeholder ripple-container" id="hero-image">
+                            <div class="hero-image-placeholder">
                                 <div class="data-globe"></div>
                             </div>
                         </div>
 
                         <div class="card glass chat-card">
-                            <div class="card-header">
-                                <h3>AIコンサルタント対話</h3>
-                                <button class="btn-icon"><i class="fas fa-ellipsis-h"></i></button>
-                            </div>
+                            <h3 style="margin-bottom: 1rem;">AIコンサルタント対話</h3>
                             <div class="chat-messages" id="chat-box">
                                 <div class="message ai">
                                     <div class="message-content">
@@ -126,344 +575,253 @@
                                 </div>
                             </div>
                             <div class="chat-input-area">
-                                <input type="text" placeholder="質問を入力してください...">
+                                <input type="text" placeholder="質問を入力...">
                                 <button class="send-btn"><i class="fas fa-paper-plane"></i></button>
                             </div>
                         </div>
 
                         <div class="card glass chart-card">
-                            <div class="card-header">
-                                <h3>開示ギャップ分析</h3>
-                            </div>
+                            <h3>開示ギャップ分析</h3>
                             <div class="chart-container">
                                 <canvas id="gapChart"></canvas>
                             </div>
-                        </div>
-
-                        <div class="card glass task-card">
-                            <div class="card-header">
-                                <h3>ネクストアクション</h3>
-                            </div>
-                            <ul class="task-list">
-                                <li>
-                                    <div class="checkbox done"></div>
-                                    <span>1.1 企業プロファイルの解析</span>
-                                </li>
-                                <li>
-                                    <div class="checkbox doing"></div>
-                                    <span>2.1 内部ナレッジの探索</span>
-                                </li>
-                                <li>
-                                    <div class="checkbox"></div>
-                                    <span>3.1 シナリオ分析の実行</span>
-                                </li>
-                            </ul>
                         </div>
                     </div>
                 </div>
 
                 <!-- Comparison View -->
                 <div class="view-section" id="view-comparison">
-                    <div class="comparison-header">
-                        <h2>本格分析：新旧対照・文案生成</h2>
-                        <div class="file-upload-actions">
-                            <button class="btn btn-outline" id="manage-sources-btn"><i class="fas fa-database"></i>
-                                ナレッジソース管理</button>
-                            <button class="btn btn-primary" id="start-serious-analysis"><i class="fas fa-magic"></i>
-                                分析を実行</button>
-                            <button class="btn btn-outline" id="export-word-btn"
-                                style="border-color: #2b5797; color: #2b5797; display: none;">
-                                <i class="fas fa-file-word"></i> Word形式で出力
-                            </button>
-                        </div>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2>新旧対照・文案生成</h2>
+                        <button class="btn btn-primary" onclick="runAnalysisDemo()">分析を実行</button>
                     </div>
-
-                    <!-- Source Management Panel (Initially Hidden) -->
-                    <div class="card glass source-panel" id="source-panel" style="display: none; margin-bottom: 2rem;">
-                        <div class="source-grid">
-                            <div class="source-item">
-                                <h3>SSBJ基準ソース (外部連携)</h3>
-                                <div class="source-actions" style="margin-bottom: 1rem;">
-                                    <button class="btn btn-xs gdrive-btn" id="gdrive-connect-btn">
-                                        <i class="fab fa-google-drive"></i> GDrive URLを指定
-                                    </button>
-                                </div>
-                                <ul class="file-list" id="ssbj-file-list">
-                                    <li class="drive-status-item"><i class="fas fa-link text-secondary"></i>
-                                        ドライブを指定してください</li>
-                                </ul>
-                            </div>
-                            <div class="source-item">
-                                <h3>対象企業有報・統合報告書 (アップロード)</h3>
-                                <div class="source-actions" style="margin-bottom: 1rem;">
-                                    <input type="file" id="report-upload-input" style="display: none;" multiple>
-                                    <button class="btn btn-xs btn-outline"
-                                        onclick="document.getElementById('report-upload-input').click()">
-                                        <i class="fas fa-plus"></i> サンプル有報を選択
-                                    </button>
-                                </div>
-                                <ul class="file-list" id="company-file-list">
-                                    <li><i class="fas fa-info-circle text-secondary"></i> ファイルを選択してください</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="comparison-container card glass">
-                        <div class="comparison-table-wrapper">
-                            <table class="comparison-table">
-                                <thead>
-                                    <tr>
-                                        <th width="15%">開示項目</th>
-                                        <th width="25%">現状の記述 (ソース参照)</th>
-                                        <th width="40%">SSBJ準拠：推奨文案</th>
-                                        <th width="20%">AI推論ロジック</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="comparison-results-body">
-                                    <!-- Results will be injected here -->
-                                    <tr class="placeholder-row">
-                                        <td colspan="4"
-                                            style="text-align: center; color: var(--text-secondary); padding: 4rem;">
-                                            ナレッジソースを選択し、「本気で分析を実行」をクリックしてください
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="card glass">
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>開示項目</th>
+                                    <th>現状の記述</th>
+                                    <th>SSBJ準拠：推奨文案</th>
+                                    <th>根拠/ロジック</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparison-body">
+                                <tr>
+                                    <td colspan="4"
+                                        style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+                                        分析を実行してください</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
                 <!-- Simulation View -->
                 <div class="view-section" id="view-simulation">
                     <div class="simulation-layout">
-                        <div class="card glass simulation-controls">
-                            <h3>シミュレーション・パラメータ</h3>
+                        <div class="card glass">
+                            <h3>パラメータ設定</h3>
                             <div class="control-group">
-                                <label>炭素価格 ($/tCO2)</label>
-                                <input type="range" min="0" max="250" value="140" class="slider">
-                                <div class="slider-val">$140</div>
+                                <label>炭素価格 ($/tCO2): <span id="carbon-val">140</span></label>
+                                <input type="range" min="0" max="250" value="140" class="slider"
+                                    oninput="document.getElementById('carbon-val').textContent = this.value">
                             </div>
                             <div class="control-group">
-                                <label>気温上昇シナリオ</label>
+                                <label>気温下降目標</label>
                                 <select class="form-select">
-                                    <option>1.5℃ シナリオ (NZE)</option>
-                                    <option>2.0℃ シナリオ (APS)</option>
-                                    <option>4.0℃ シナリオ (STEPS)</option>
+                                    <option>1.5℃ シナリオ</option>
+                                    <option>2.0℃ シナリオ</option>
                                 </select>
                             </div>
-                            <div class="control-group">
-                                <label>Scope 3 カテゴリ選択</label>
-                                <select class="form-select" id="scope3-category-select">
-                                    <option value="1">カテゴリ1：購入した製品・サービス</option>
-                                    <option value="2">カテゴリ2：資本財</option>
-                                    <option value="3">カテゴリ3：Scope 1,2に含まれない燃料・エネルギー</option>
-                                    <option value="4">カテゴリ4：輸送・配送（上流）</option>
-                                    <option value="5">カテゴリ5：事業から出る廃棄物</option>
-                                    <option value="6">カテゴリ6：出張</option>
-                                    <option value="7">カテゴリ7：雇用者の通勤</option>
-                                    <option value="8">カテゴリ8：リース資産（上流）</option>
-                                    <option value="9">カテゴリ9：輸送・配送（下流）</option>
-                                    <option value="10">カテゴリ10：販売した製品の加工</option>
-                                    <option value="11">カテゴリ11：販売した製品の使用</option>
-                                    <option value="12">カテゴリ12：販売した製品の廃棄</option>
-                                    <option value="13">カテゴリ13：リース資産（下流）</option>
-                                    <option value="14">カテゴリ14：フランチャイズ</option>
-                                    <option value="15">カテゴリ15：投資</option>
-                                </select>
-                                <button class="btn btn-xs btn-outline btn-block" style="margin-top: 0.5rem;"
-                                    id="add-category-btn">構成に追加</button>
-                            </div>
-                            <div class="control-group">
-                                <label>選択中のカテゴリ削減目標</label>
-                                <div id="active-categories-list">
-                                    <!-- Dynamic list of sliders will appear here -->
-                                    <div class="category-slider-item" data-cat="1">
-                                        <div class="cat-label">Cat.1: 20% 削減</div>
-                                        <input type="range" min="0" max="100" value="20"
-                                            class="slider scope3-dyn-slider">
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="btn btn-primary btn-block" id="run-simulation">試算実行</button>
+                            <button class="btn btn-primary btn-block" onclick="updateSim()">シミュレーション実行</button>
                         </div>
-                        <div class="card glass simulation-results">
-                            <h3>財務影響予測 (2025-2050)</h3>
+                        <div class="card glass">
+                            <h3>財務影響予測 (2050)</h3>
                             <div class="chart-container large">
                                 <canvas id="simChart"></canvas>
                             </div>
                         </div>
                     </div>
-                    <!-- Physical Risk View -->
-                    <div class="view-section" id="view-physical">
-                        <div class="physical-grid">
-                            <div class="card glass physical-map-card">
-                                <div class="card-header">
-                                    <h3>拠点別・気候災害リスクマップ</h3>
-                                    <div class="map-controls">
-                                        <select class="form-select sm" id="hazard-type">
-                                            <option value="flood">洪水・高潮</option>
-                                            <option value="heat">極端な猛暑</option>
-                                            <option value="water">水ストレス</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="map-container ripple-container" id="hazard-map">
-                                    <!-- Abstract Map Visualization -->
-                                    <div class="abstract-map">
-                                        <div class="map-node hot" style="top: 30%; left: 40%;"><span>拠点A</span></div>
-                                        <div class="map-node" style="top: 50%; left: 60%;"><span>拠点B</span></div>
-                                        <div class="map-node warning" style="top: 70%; left: 30%;"><span>拠点C</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card glass physical-impact-card">
-                                <div class="card-header">
-                                    <h3>物理的リスクによる想定損失額 (2050)</h3>
-                                </div>
-                                <div class="chart-container large">
-                                    <canvas id="physicalChart"></canvas>
-                                </div>
-                                <div class="impact-legend"
-                                    style="margin-top: 1rem; display: flex; gap: 1rem; font-size: 0.75rem;">
-                                    <span><i class="fas fa-circle" style="color: #ef4444;"></i> 急性的リスク (洪水等)</span>
-                                    <span><i class="fas fa-circle" style="color: #f59e0b;"></i> 慢性的リスク (気温上昇)</span>
+                </div>
+
+                <!-- Physical View -->
+                <div class="view-section" id="view-physical">
+                    <div class="physical-grid">
+                        <div class="card glass">
+                            <h3>拠点別・気候災害リスクマップ</h3>
+                            <div class="map-container">
+                                <div class="abstract-map">
+                                    <div class="map-node hot" style="top: 30%; left: 40%;" title="拠点A: 高リスク"></div>
+                                    <div class="map-node warning" style="top: 60%; left: 50%;" title="拠点B: 中リスク"></div>
+                                    <div class="map-node" style="top: 40%; left: 70%;" title="拠点C: 低リスク"></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Evidence View -->
-                    <div class="view-section" id="view-evidence">
-                        <div class="evidence-grid">
-                            <div class="card glass">
-                                <h3>監査証跡パッケージ (Traceability)</h3>
-                                <div class="evidence-stats">
-                                    <div class="stat"><span>総数値数</span><strong>142</strong></div>
-                                    <div class="stat"><span>エビデンス紐付済</span><strong>128</strong></div>
-                                    <div class="stat"><span>要確認</span><strong class="warning">14</strong></div>
-                                </div>
-                                <table class="evidence-table">
-                                    <thead>
-                                        <tr>
-                                            <th>項目</th>
-                                            <th>数値</th>
-                                            <th>根拠ファイル</th>
-                                            <th>監査ステータス</th>
-                                            <th>監査人・担当者メモ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Scope 1 (国内)</td>
-                                            <td>12,450 t-CO2</td>
-                                            <td><i class="far fa-file-excel text-success"></i> 2024_FactData.xlsx
-                                                [Sheet1!C4]</td>
-                                            <td><span class="status-indicator verified">確認済</span></td>
-                                            <td>
-                                                <div class="audit-note">
-                                                    <i class="fas fa-check-circle text-success"></i>
-                                                    <span>過年度との算定基準の不整合なし。</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>Scope 3 Cat.1 (原材料)</td>
-                                            <td>842,000 t-CO2</td>
-                                            <td><i class="far fa-file-alt"></i> Supplier_Survey_Summary.pdf</td>
-                                            <td><span class="status-indicator pending">検証中</span></td>
-                                            <td>
-                                                <button class="btn btn-xs btn-outline add-note-btn"><i
-                                                        class="fas fa-pen"></i> メモ追加</button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>炭素税影響額</td>
-                                            <td>-1.2 億円</td>
-                                            <td><i class="far fa-file-pdf text-danger"></i> IEA_WEO2024.pdf [p.34]</td>
-                                            <td><span class="status-indicator pending">検証中</span></td>
-                                            <td>
-                                                <div class="audit-note warning">
-                                                    <i class="fas fa-exclamation-triangle"></i>
-                                                    <span>参照シナリオの版数を確認中。</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <div class="card glass">
+                            <h3>損失額予測</h3>
+                            <div class="chart-container">
+                                <canvas id="physicalChart"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
         </main>
     </div>
 
-    <!-- Calculation Logic Modal -->
-    <div class="modal-overlay" id="calc-modal">
-        <div class="card glass modal-content">
-            <div class="card-header">
-                <h3><i class="fas fa-calculator"></i> 算定ロジック詳細</h3>
-                <button class="btn-icon" id="close-modal"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <div class="formula-box">
-                    <p class="formula-label">炭素税影響額の計算式：</p>
-                    <code>財務影響 = Σ (排出量(t-CO2) × 炭素価格差分($/t) × 為替レート) × (1 - 削減貢献度)</code>
-                </div>
-                <div class="logic-details">
-                    <h4>適用シナリオパラメータ：</h4>
-                    <ul>
-                        <li>IEA NZE 2050 シナリオ準拠</li>
-                        <li>2030年想定価格: $140/t-CO2</li>
-                        <li>社会資本コスト (WACC): 5.2%</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Scripts -->
+    <script>
+        // Basic Navigation & View Switching
+        function switchView(phase) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-    <!-- Google Drive Connection Modal -->
-    <div class="modal-overlay" id="gdrive-modal">
-        <div class="card glass modal-content" style="width: 500px;">
-            <div class="card-header">
-                <h3><i class="fab fa-google-drive" style="color: #34a853;"></i> Google Drive 連携</h3>
-                <button class="btn-icon" id="close-gdrive-modal"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <div class="control-group">
-                    <label>Google Cloud Client ID</label>
-                    <input type="password" class="form-input" id="gdrive-client-id"
-                        placeholder="Google Console Client ID"
-                        style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; margin-bottom: 1rem;">
+            const target = document.getElementById('view-' + phase);
+            if (target) {
+                target.classList.add('active');
+                // Set active nav item
+                const navItems = document.querySelectorAll('.nav-item');
+                navItems.forEach(item => {
+                    if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(phase)) {
+                        item.classList.add('active');
+                    }
+                });
 
-                    <label>Gemini API Key</label>
-                    <input type="password" class="form-input" id="gemini-api-key"
-                        placeholder="Gemini API Key for AI Agent"
-                        style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; margin-bottom: 1rem;">
+                // Init charts for the view if needed
+                if (phase === 'simulation') initSimChart();
+                if (phase === 'physical') initPhysicalChart();
+            }
+        }
 
-                    <label>フォルダ URL / ファイル ID</label>
-                    <input type="text" class="form-input" id="gdrive-url-input"
-                        placeholder="https://drive.google.com/drive/folders/..."
-                        style="width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
-                </div>
-                <div style="margin-top: 1rem; font-size: 0.7rem; color: var(--text-secondary); line-height: 1.4;">
-                    ※ リアルな連携には Google Cloud Console での OAuth 設定と、Gemini API キーが必要です。
-                </div>
-                <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
-                    <button class="btn btn-primary btn-block" id="confirm-gdrive-btn">AI エージェントを起動</button>
-                    <button class="btn btn-outline btn-block" id="use-sample-gdrive" style="font-size: 0.8rem;">
-                        <i class="fas fa-magic"></i> デモ用サンプル（シミュレーション）
-                    </button>
-                </div>
-                <div id="gdrive-sync-status" style="margin-top: 1rem; font-size: 0.8rem; display: none;">
-                    <i class="fas fa-sync fa-spin"></i> フォルダ権限を検証中...
-                </div>
-            </div>
-        </div>
-    </div>
+        // Charts
+        let gapChart, simChart, physicalChart;
 
-    <script type="module" src="script.js"></script>
+        function initGapChart() {
+            const ctx = document.getElementById('gapChart');
+            if (!ctx) return;
+            gapChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['ガバナンス', '戦略', 'リスク管理', '指標と目標', '財務影響', 'データ信頼性'],
+                    datasets: [{
+                        label: '現状',
+                        data: [20, 15, 30, 25, 10, 40],
+                        backgroundColor: 'rgba(0, 242, 254, 0.1)',
+                        borderColor: '#00f2fe',
+                        borderWidth: 2
+                    }, {
+                        label: 'SSBJ要求',
+                        data: [100, 100, 100, 100, 100, 100],
+                        borderColor: '#4f46e5',
+                        borderWidth: 1,
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: { scales: { r: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { display: false }, suggestedMax: 100 } }, plugins: { legend: { labels: { color: '#fff' } } } }
+            });
+        }
+
+        function initSimChart() {
+            if (simChart) return;
+            const ctx = document.getElementById('simChart');
+            simChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['2025', '2030', '2040', '2050'],
+                    datasets: [{ label: '利益影響', data: [0, -10, -35, -70], borderColor: '#00f2fe', fill: true, backgroundColor: 'rgba(0,242,254,0.1)' }]
+                },
+                options: { scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } } }, plugins: { legend: { labels: { color: '#fff' } } } }
+            });
+        }
+
+        function initPhysicalChart() {
+            if (physicalChart) return;
+            const ctx = document.getElementById('physicalChart');
+            physicalChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['拠点A', '拠点B', '拠点C'],
+                    datasets: [{ label: '洪水', data: [120, 45, 10], backgroundColor: '#ef4444' }, { label: '猛暑', data: [30, 20, 15], backgroundColor: '#f59e0b' }]
+                },
+                options: { scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } } }, plugins: { legend: { labels: { color: '#fff' } } } }
+            });
+        }
+
+        window.onload = () => {
+            initGapChart();
+            setupDemo();
+        };
+
+        function addMessage(text, sender) {
+            const box = document.getElementById('chat-box');
+            const msg = document.createElement('div');
+            msg.className = 'message ' + sender;
+            msg.innerHTML = `<div class="message-content">${text}</div>`;
+            box.appendChild(msg);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function runAnalysisDemo() {
+            const body = document.getElementById('comparison-body');
+            body.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 4rem; color: var(--accent-blue);"><i class="fas fa-spinner fa-spin"></i> AIが解析中です...</td></tr>';
+            setTimeout(() => {
+                body.innerHTML = `
+                    <tr>
+                        <td>ガバナンス</td>
+                        <td class="text-secondary">環境委員会で議論。</td>
+                        <td>取締役会による監視体制を明文化し、監督責任を特定。</td>
+                        <td class="text-warning">第26項準拠</td>
+                    </tr>
+                    <tr>
+                        <td>移行リスク</td>
+                        <td class="text-secondary">特に記載なし。</td>
+                        <td>IEA NZEシナリオに基づき炭素税影響を定量化。</td>
+                        <td class="text-warning">第34項準拠</td>
+                    </tr>
+                `;
+                addMessage("分析が完了しました。重大なギャップが見つかりました。", "ai");
+            }, 1500);
+        }
+
+        function updateSim() {
+            if (simChart) {
+                simChart.data.datasets[0].data = [0, -5, -20, -45].map(v => v * (Math.random() + 0.5));
+                simChart.update();
+                addMessage("シミュレーション結果を更新しました。", "ai");
+            }
+        }
+
+        function setupDemo() {
+            const btn = document.getElementById('demo-start-btn');
+            btn.onclick = async () => {
+                btn.disabled = true;
+                addMessage("デモを開始します。全フェーズを自動案内します。", "ai");
+
+                await new Promise(r => setTimeout(r, 1500));
+                if (gapChart) {
+                    gapChart.data.datasets[0].data = [85, 40, 55, 70, 20, 90];
+                    gapChart.update();
+                }
+                addMessage("第1フェーズ：開示ギャップを特定しました。", "ai");
+
+                await new Promise(r => setTimeout(r, 1500));
+                switchView('comparison');
+                runAnalysisDemo();
+
+                await new Promise(r => setTimeout(r, 3000));
+                switchView('physical');
+                addMessage("第3フェーズ：拠点の物理的リスクを解析します。", "ai");
+
+                await new Promise(r => setTimeout(r, 2000));
+                switchView('simulation');
+                updateSim();
+
+                btn.innerHTML = 'デモ完了';
+                btn.classList.add('btn-success');
+            };
+        }
+    </script>
 </body>
 
 </html>
