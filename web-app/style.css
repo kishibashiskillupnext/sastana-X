@@ -21,6 +21,7 @@ body {
     color: var(--text-primary);
     overflow: hidden;
     line-height: 1.6;
+    height: 100vh;
 }
 
 h1,
@@ -451,15 +452,25 @@ h3,
 }
 
 /* Dashboard Grid */
+.main-content {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+    position: relative;
+    background: radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.03) 0%, transparent 100%);
+}
+
 .content-body {
-    padding: 3rem;
+    padding: 2.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    grid-template-rows: auto auto;
-    gap: 2rem;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: min-content;
+    gap: 1.5rem;
 }
 
 .card {
@@ -475,13 +486,14 @@ h3,
 }
 
 .hero-card {
-    grid-column: span 2;
+    grid-column: span 12;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(0, 242, 254, 0.05));
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(0, 242, 254, 0.1));
     overflow: hidden;
     position: relative;
+    padding: 3rem;
 }
 
 .hero-content h1 {
@@ -562,9 +574,19 @@ h3,
 
 /* Chat Card */
 .chat-card {
+    grid-column: span 7;
     display: flex;
     flex-direction: column;
-    height: 500px;
+    height: 450px;
+}
+
+.chart-card {
+    grid-column: span 5;
+    height: 450px;
+}
+
+.task-card {
+    grid-column: span 12;
 }
 
 .card-header {
@@ -624,8 +646,11 @@ h3,
 
 /* Charts and Tasks */
 .chart-container {
-    height: 250px;
+    height: 320px;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .task-list {

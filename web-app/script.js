@@ -11,47 +11,55 @@ document.addEventListener('DOMContentLoaded', () => {
     let gapiInited = false;
     let gsiInited = false;
 
-    // === 1. Chart Initializations ===
-
     // Dashboard Radar Chart
-    const gapCtx = document.getElementById('gapChart').getContext('2d');
-    const gapChart = new Chart(gapCtx, {
-        type: 'radar',
-        data: {
-            labels: ['ガバナンス', '戦略', 'リスク管理', '指標と目標', '財務影響', 'データ信頼性'],
-            datasets: [{
-                label: '分析前',
-                data: [0, 0, 0, 0, 0, 0],
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                borderColor: 'rgba(255, 255, 255, 0.2)',
-                borderWidth: 1,
-            }, {
-                label: 'SSBJ要求水準',
-                data: [100, 100, 100, 100, 100, 100],
-                backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                borderColor: '#4f46e5',
-                borderWidth: 1,
-                borderDash: [5, 5],
-                pointRadius: 0
-            }]
-        },
-        options: {
-            scales: {
-                r: {
-                    angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    pointLabels: { color: '#94a3b8', font: { size: 12 } },
-                    ticks: { display: false },
-                    suggestedMin: 0,
-                    suggestedMax: 100
-                }
+    let gapChart;
+    const initGapChart = () => {
+        const gapCanvas = document.getElementById('gapChart');
+        if (!gapCanvas) return;
+
+        const gapCtx = gapCanvas.getContext('2d');
+        gapChart = new Chart(gapCtx, {
+            type: 'radar',
+            data: {
+                labels: ['ガバナンス', '戦略', 'リスク管理', '指標と目標', '財務影響', 'データ信頼性'],
+                datasets: [{
+                    label: '分析前',
+                    data: [20, 15, 30, 25, 10, 40], // Initial dummy data instead of zeros
+                    backgroundColor: 'rgba(0, 242, 254, 0.1)',
+                    borderColor: 'rgba(0, 242, 254, 0.4)',
+                    borderWidth: 2,
+                    fill: true
+                }, {
+                    label: 'SSBJ要求水準',
+                    data: [100, 100, 100, 100, 100, 100],
+                    backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                    borderColor: '#4f46e5',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    pointRadius: 0
+                }]
             },
-            plugins: {
-                legend: { labels: { color: '#ffffff' } }
-            },
-            maintainAspectRatio: false
-        }
-    });
+            options: {
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        pointLabels: { color: '#94a3b8', font: { size: 11 } },
+                        ticks: { display: false, stepSize: 20 },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, font: { size: 10 } } }
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    };
+
+    initGapChart();
 
     // Simulation Line Chart
     let simChart;
@@ -141,11 +149,13 @@ document.addEventListener('DOMContentLoaded', () => {
             addMessage("企業の活動領域を特定。SSBJ要求事項との照合を開始します。", "ai");
 
             // Update Radar Chart with animation feeling
-            gapChart.data.datasets[0].label = "分析後 (2024年実績)";
-            gapChart.data.datasets[0].data = [85, 40, 55, 70, 20, 90];
-            gapChart.data.datasets[0].backgroundColor = "rgba(0, 242, 254, 0.2)";
-            gapChart.data.datasets[0].borderColor = "#00f2fe";
-            gapChart.update();
+            if (gapChart) {
+                gapChart.data.datasets[0].label = "分析後 (2024年実績)";
+                gapChart.data.datasets[0].data = [85, 40, 55, 70, 20, 90];
+                gapChart.data.datasets[0].backgroundColor = "rgba(0, 242, 254, 0.2)";
+                gapChart.data.datasets[0].borderColor = "#00f2fe";
+                gapChart.update();
+            }
 
             // 2. File Upload Simulation
             await new Promise(r => setTimeout(r, 1500));
