@@ -51,6 +51,9 @@
                 <a href="#" class="nav-item" data-phase="simulation">
                     <i class="fas fa-chart-line"></i> <span>財務影響シミュレーション</span>
                 </a>
+                <a href="#" class="nav-item" data-phase="physical">
+                    <i class="fas fa-cloud-showers-heavy"></i> <span>物理的リスク解析 (S1/S2)</span>
+                </a>
                 <a href="#" class="nav-item" data-phase="evidence">
                     <i class="fas fa-shield-alt"></i> <span>監査証跡・エビデンス</span>
                 </a>
@@ -291,70 +294,108 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Evidence View -->
-                <div class="view-section" id="view-evidence">
-                    <div class="evidence-grid">
-                        <div class="card glass">
-                            <h3>監査証跡パッケージ (Traceability)</h3>
-                            <div class="evidence-stats">
-                                <div class="stat"><span>総数値数</span><strong>142</strong></div>
-                                <div class="stat"><span>エビデンス紐付済</span><strong>128</strong></div>
-                                <div class="stat"><span>要確認</span><strong class="warning">14</strong></div>
+                    <!-- Physical Risk View -->
+                    <div class="view-section" id="view-physical">
+                        <div class="physical-grid">
+                            <div class="card glass physical-map-card">
+                                <div class="card-header">
+                                    <h3>拠点別・気候災害リスクマップ</h3>
+                                    <div class="map-controls">
+                                        <select class="form-select sm" id="hazard-type">
+                                            <option value="flood">洪水・高潮</option>
+                                            <option value="heat">極端な猛暑</option>
+                                            <option value="water">水ストレス</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="map-container ripple-container" id="hazard-map">
+                                    <!-- Abstract Map Visualization -->
+                                    <div class="abstract-map">
+                                        <div class="map-node hot" style="top: 30%; left: 40%;"><span>拠点A</span></div>
+                                        <div class="map-node" style="top: 50%; left: 60%;"><span>拠点B</span></div>
+                                        <div class="map-node warning" style="top: 70%; left: 30%;"><span>拠点C</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <table class="evidence-table">
-                                <thead>
-                                    <tr>
-                                        <th>項目</th>
-                                        <th>数値</th>
-                                        <th>根拠ファイル</th>
-                                        <th>監査ステータス</th>
-                                        <th>監査人・担当者メモ</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Scope 1 (国内)</td>
-                                        <td>12,450 t-CO2</td>
-                                        <td><i class="far fa-file-excel text-success"></i> 2024_FactData.xlsx
-                                            [Sheet1!C4]</td>
-                                        <td><span class="status-indicator verified">確認済</span></td>
-                                        <td>
-                                            <div class="audit-note">
-                                                <i class="fas fa-check-circle text-success"></i>
-                                                <span>過年度との算定基準の不整合なし。</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Scope 3 Cat.1 (原材料)</td>
-                                        <td>842,000 t-CO2</td>
-                                        <td><i class="far fa-file-alt"></i> Supplier_Survey_Summary.pdf</td>
-                                        <td><span class="status-indicator pending">検証中</span></td>
-                                        <td>
-                                            <button class="btn btn-xs btn-outline add-note-btn"><i
-                                                    class="fas fa-pen"></i> メモ追加</button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>炭素税影響額</td>
-                                        <td>-1.2 億円</td>
-                                        <td><i class="far fa-file-pdf text-danger"></i> IEA_WEO2024.pdf [p.34]</td>
-                                        <td><span class="status-indicator pending">検証中</span></td>
-                                        <td>
-                                            <div class="audit-note warning">
-                                                <i class="fas fa-exclamation-triangle"></i>
-                                                <span>参照シナリオの版数を確認中。</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <div class="card glass physical-impact-card">
+                                <div class="card-header">
+                                    <h3>物理的リスクによる想定損失額 (2050)</h3>
+                                </div>
+                                <div class="chart-container large">
+                                    <canvas id="physicalChart"></canvas>
+                                </div>
+                                <div class="impact-legend"
+                                    style="margin-top: 1rem; display: flex; gap: 1rem; font-size: 0.75rem;">
+                                    <span><i class="fas fa-circle" style="color: #ef4444;"></i> 急性的リスク (洪水等)</span>
+                                    <span><i class="fas fa-circle" style="color: #f59e0b;"></i> 慢性的リスク (気温上昇)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Evidence View -->
+                    <div class="view-section" id="view-evidence">
+                        <div class="evidence-grid">
+                            <div class="card glass">
+                                <h3>監査証跡パッケージ (Traceability)</h3>
+                                <div class="evidence-stats">
+                                    <div class="stat"><span>総数値数</span><strong>142</strong></div>
+                                    <div class="stat"><span>エビデンス紐付済</span><strong>128</strong></div>
+                                    <div class="stat"><span>要確認</span><strong class="warning">14</strong></div>
+                                </div>
+                                <table class="evidence-table">
+                                    <thead>
+                                        <tr>
+                                            <th>項目</th>
+                                            <th>数値</th>
+                                            <th>根拠ファイル</th>
+                                            <th>監査ステータス</th>
+                                            <th>監査人・担当者メモ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Scope 1 (国内)</td>
+                                            <td>12,450 t-CO2</td>
+                                            <td><i class="far fa-file-excel text-success"></i> 2024_FactData.xlsx
+                                                [Sheet1!C4]</td>
+                                            <td><span class="status-indicator verified">確認済</span></td>
+                                            <td>
+                                                <div class="audit-note">
+                                                    <i class="fas fa-check-circle text-success"></i>
+                                                    <span>過年度との算定基準の不整合なし。</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Scope 3 Cat.1 (原材料)</td>
+                                            <td>842,000 t-CO2</td>
+                                            <td><i class="far fa-file-alt"></i> Supplier_Survey_Summary.pdf</td>
+                                            <td><span class="status-indicator pending">検証中</span></td>
+                                            <td>
+                                                <button class="btn btn-xs btn-outline add-note-btn"><i
+                                                        class="fas fa-pen"></i> メモ追加</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>炭素税影響額</td>
+                                            <td>-1.2 億円</td>
+                                            <td><i class="far fa-file-pdf text-danger"></i> IEA_WEO2024.pdf [p.34]</td>
+                                            <td><span class="status-indicator pending">検証中</span></td>
+                                            <td>
+                                                <div class="audit-note warning">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    <span>参照シナリオの版数を確認中。</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
         </main>
     </div>
 

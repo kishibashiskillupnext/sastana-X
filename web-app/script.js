@@ -114,6 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetSection) {
             targetSection.classList.add('active');
             if (phase === 'simulation') initSimChart();
+            if (phase === 'physical') initPhysicalChart();
         }
     };
 
@@ -176,11 +177,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             await new Promise(r => setTimeout(r, 3000));
-            addMessage("分析が完了しました。重大なギャップが見つかったため、財務影響シミュレーションへ誘導します。", "ai");
+            addMessage("分析が完了しました。重大なギャップが見つかったため、物理的リスク解析へ移行します。", "ai");
 
-            // 4. Simulation Phase
+            // 4. Physical Risk Phase
             await new Promise(r => setTimeout(r, 1500));
+            switchView('physical');
+            addMessage("SSBJ S1/S2に基づく物理的リスク解析を実行。主要拠点の洪水・猛暑リスクを視覚化しました。", "ai");
+
+            // 5. Simulation Phase
+            await new Promise(r => setTimeout(r, 2000));
             switchView('simulation');
+            addMessage("最後に、移行リスクと物理的リスクを統合した長期的財務シミュレーションを確認します。", "ai");
             setTimeout(() => {
                 const runSimBtn = document.getElementById('run-simulation');
                 if (runSimBtn) runSimBtn.click();
@@ -192,8 +199,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === 5. Simulation Calculation Logic ===
+    // === 5. Simulation & Physical Chart Logic ===
     const runSimBtn = document.getElementById('run-simulation');
+
+    // Physical Risk Chart
+    let physicalChart;
+    const initPhysicalChart = () => {
+        if (physicalChart) return;
+        const physCtx = document.getElementById('physicalChart').getContext('2d');
+        physicalChart = new Chart(physCtx, {
+            type: 'bar',
+            data: {
+                labels: ['拠点A (工場)', '拠点B (倉庫)', '拠点C (本社)', '拠点D (海外分社)'],
+                datasets: [{
+                    label: '急性的リスク (洪水/高潮)',
+                    data: [120, 45, 10, 85],
+                    backgroundColor: '#ef4444'
+                }, {
+                    label: '慢性的リスク (温度上昇影響)',
+                    data: [30, 20, 15, 60],
+                    backgroundColor: '#f59e0b'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: '想定損失額 (百万円)', color: '#94a3b8' },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    };
     const updateSimChart = () => {
         initSimChart();
         const mainSlider = document.querySelector('.slider');
@@ -514,6 +555,64 @@ document.addEventListener('DOMContentLoaded', () => {
             a.href = url;
             a.download = 'SSBJ_Draft.doc';
             a.click();
+        });
+    }
+
+    // === 9. Interactive Search & Polish ===
+    const searchInput = document.querySelector('.search-bar input');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = searchInput.value.toLowerCase();
+                addMessage(`「${query}」に関するナレッジベースを検索中...`, "ai");
+                setTimeout(() => {
+                    addMessage(`SSBJ S2基準：関連する${Math.floor(Math.random() * 5) + 1}件の項目が見つかりました（第26項等）。`, "ai");
+                }, 1000);
+            }
+        });
+    }
+
+    // Evidence Actions
+    const addEvidenceInteractivity = () => {
+        document.querySelectorAll('.add-note-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const note = prompt("監査用メモを入力してください:");
+                if (note) {
+                    const cell = btn.parentElement;
+                    cell.innerHTML = `
+                        <div class="audit-note">
+                            <i class="fas fa-comment-dots text-primary"></i>
+                            <span>${note}</span>
+                        </div>
+                    `;
+                }
+            });
+        });
+
+        document.querySelectorAll('.status-indicator').forEach(status => {
+            status.addEventListener('click', () => {
+                if (status.classList.contains('pending')) {
+                    status.classList.remove('pending');
+                    status.classList.add('verified');
+                    status.textContent = '確認済';
+                } else if (status.classList.contains('verified')) {
+                    status.classList.remove('verified');
+                    status.classList.add('pending');
+                    status.textContent = '検証中';
+                }
+            });
+        });
+    };
+    addEvidenceInteractivity();
+
+    // Main Export
+    const mainExportBtn = document.querySelector('.header-actions .btn-primary:nth-child(2)');
+    if (mainExportBtn) {
+        mainExportBtn.addEventListener('click', () => {
+            addMessage("開示パッケージ一式（PDF, Excel, Word）の生成を開始します...", "ai");
+            setTimeout(() => {
+                alert("エクスポート用リンクが生成されました。監査法人への共有準備が整いました。");
+            }, 1200);
         });
     }
 });
