@@ -480,6 +480,86 @@
         .text-warning {
             color: #f59e0b;
         }
+
+        /* Progress Modal */
+        .loading-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .loading-step.active {
+            opacity: 1;
+        }
+
+        .loading-step i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--accent-blue);
+            transition: width 0.5s;
+        }
+
+        .config-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .toggle-sim {
+            width: 34px;
+            height: 18px;
+            background: #334155;
+            border-radius: 9px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .toggle-sim::after {
+            content: '';
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .toggle-sim.active {
+            background: var(--accent-blue);
+        }
+
+        .toggle-sim.active::after {
+            left: 18px;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@600;700&display=swap"
         rel="stylesheet">
@@ -670,6 +750,54 @@
         </main>
     </div>
 
+    <!-- AI Preprocessing Modal -->
+    <div id="setup-modal" class="modal-overlay">
+        <div class="card glass modal-content" style="padding: 2.5rem; border-radius: 32px; width: 550px;">
+            <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                <i class="fas fa-brain" style="color: var(--accent-blue);"></i> AI解析セットアップ
+            </h2>
+
+            <div id="loading-phases">
+                <div class="loading-step" id="step-1">
+                    <i class="fas fa-file-pdf"></i>
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>有価証券報告書の読み込み</span>
+                            <span class="status-txt">待機中</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="loading-step" id="step-2">
+                    <i class="fas fa-sliders-h"></i>
+                    <div style="flex: 1;">
+                        <span>SSBJ解釈パラメーターの適用</span>
+                        <div class="config-card">
+                            <div class="config-row">
+                                <span>開示の厳格性 (第S1/S2号)</span>
+                                <div class="toggle-sim active"></div>
+                            </div>
+                            <div class="config-row">
+                                <span>マテリアリティ閾値 (2%)</span>
+                                <div class="toggle-sim active"></div>
+                            </div>
+                            <div class="config-row">
+                                <span>移行リスク感度分析</span>
+                                <div class="toggle-sim"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="modal-footer" style="margin-top: 2rem; display: none;">
+                <button class="btn btn-primary btn-block" onclick="finishSetup()">AI分析エンジンを起動</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script>
         // Basic Navigation & View Switching
@@ -794,32 +922,83 @@
 
         function setupDemo() {
             const btn = document.getElementById('demo-start-btn');
+
+            // Add toggle click handler
+            document.querySelectorAll('.toggle-sim').forEach(t => {
+                t.onclick = () => t.classList.toggle('active');
+            });
+
             btn.onclick = async () => {
                 btn.disabled = true;
-                addMessage("デモを開始します。全フェーズを自動案内します。", "ai");
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 準備中...';
 
-                await new Promise(r => setTimeout(r, 1500));
-                if (gapChart) {
-                    gapChart.data.datasets[0].data = [85, 40, 55, 70, 20, 90];
-                    gapChart.update();
-                }
-                addMessage("第1フェーズ：開示ギャップを特定しました。", "ai");
+                // Reset modal state
+                document.getElementById('setup-modal').style.display = 'flex';
+                document.getElementById('modal-footer').style.display = 'none';
+                document.getElementById('step-1').classList.remove('active');
+                document.getElementById('step-2').classList.remove('active');
+                document.getElementById('step-1').querySelector('.progress-bar').style.width = '0%';
+                document.getElementById('step-1').querySelector('.status-txt').textContent = '待機中';
 
-                await new Promise(r => setTimeout(r, 1500));
-                switchView('comparison');
-                runAnalysisDemo();
+                // Phase 1 Animation
+                await new Promise(r => setTimeout(r, 600));
+                const step1 = document.getElementById('step-1');
+                step1.classList.add('active');
+                step1.querySelector('.status-txt').textContent = '読み込み中...';
+                const bar1 = step1.querySelector('.progress-bar');
 
-                await new Promise(r => setTimeout(r, 3000));
-                switchView('physical');
-                addMessage("第3フェーズ：拠点の物理的リスクを解析します。", "ai");
+                await new Promise(r => setTimeout(r, 400));
+                bar1.style.width = '100%';
+                await new Promise(r => setTimeout(r, 1200));
+                step1.querySelector('.status-txt').innerHTML = '<i class="fas fa-check-circle text-success"></i> 完了';
 
-                await new Promise(r => setTimeout(r, 2000));
-                switchView('simulation');
-                updateSim();
+                // Phase 2 Animation
+                await new Promise(r => setTimeout(r, 600));
+                const step2 = document.getElementById('step-2');
+                step2.classList.add('active');
+                await new Promise(r => setTimeout(r, 1000));
 
-                btn.innerHTML = 'デモ完了';
-                btn.classList.add('btn-success');
+                // Show Footer
+                document.getElementById('modal-footer').style.display = 'block';
             };
+        }
+
+        function finishSetup() {
+            document.getElementById('setup-modal').style.display = 'none';
+            const btn = document.getElementById('demo-start-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 解析実行中...';
+
+            startCoreDemo();
+        }
+
+        async function startCoreDemo() {
+            addMessage("SSBJ AIエンジンが起動しました。有価証券報告書の構造化データを生成しています。", "ai");
+
+            await new Promise(r => setTimeout(r, 1200));
+            if (gapChart) {
+                gapChart.data.datasets[0].label = "分析後";
+                gapChart.data.datasets[0].data = [85, 40, 55, 70, 20, 90];
+                gapChart.data.datasets[0].backgroundColor = "rgba(0, 242, 254, 0.2)";
+                gapChart.update();
+            }
+            addMessage("第1フェーズ：開示ギャップを特定し直しました。", "ai");
+
+            await new Promise(r => setTimeout(r, 1500));
+            switchView('comparison');
+            runAnalysisDemo();
+
+            await new Promise(r => setTimeout(r, 3500));
+            switchView('physical');
+            addMessage("第3フェーズ：特定された拠点リストに基づき、物理的リスク（S1/S2）を解析します。", "ai");
+
+            await new Promise(r => setTimeout(r, 2500));
+            switchView('simulation');
+            updateSim();
+
+            const btn = document.getElementById('demo-start-btn');
+            btn.innerHTML = '<i class="fas fa-check"></i> デモ完了';
+            btn.style.background = 'linear-gradient(95deg, #059669, #10b981)';
+            btn.disabled = false;
         }
     </script>
 </body>
