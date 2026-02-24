@@ -709,7 +709,14 @@
                         </div>
 
                         <div class="card glass chart-card">
-                            <h3>開示ギャップ分析</h3>
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <h3>開示ギャップ分析</h3>
+                                <div
+                                    style="font-size: 0.65rem; color: var(--accent-blue); background: rgba(0,242,254,0.1); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(0,242,254,0.2);">
+                                    <i class="fas fa-mouse-pointer"></i> 項目をクリックして深掘り
+                                </div>
+                            </div>
                             <div class="chart-container">
                                 <canvas id="gapChart"></canvas>
                             </div>
@@ -924,13 +931,20 @@
                     plugins: {
                         legend: { labels: { color: '#fff' } }
                     },
-                    onClick: (e) => {
-                        const activePoints = gapChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                        if (activePoints.length > 0) {
-                            const index = activePoints[0].index;
-                            const label = gapChart.data.labels[index];
+                    interaction: {
+                        mode: 'nearest',
+                        intersect: false
+                    },
+                    onClick: (event, elements, chart) => {
+                        if (elements && elements.length > 0) {
+                            const index = elements[0].index;
+                            const label = chart.data.labels[index];
                             showDrillDown(label);
                         }
+                    },
+                    onHover: (event, elements) => {
+                        const target = event.native.target;
+                        target.style.cursor = (elements && elements.length > 0) ? 'pointer' : 'default';
                     }
                 }
             });
