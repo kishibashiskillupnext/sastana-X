@@ -560,6 +560,54 @@
         .toggle-sim.active::after {
             left: 18px;
         }
+
+        /* Drill-down Styles */
+        .drill-down-list {
+            margin-top: 1.5rem;
+        }
+
+        .drill-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .drill-item i {
+            margin-top: 0.2rem;
+        }
+
+        .drill-content {
+            flex: 1;
+        }
+
+        .drill-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.2rem;
+        }
+
+        .drill-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .drill-meta {
+            font-size: 0.7rem;
+            color: var(--accent-blue);
+            margin-top: 0.4rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .drill-status {
+            font-weight: 700;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@600;700&display=swap"
         rel="stylesheet">
@@ -798,6 +846,25 @@
         </div>
     </div>
 
+    <!-- Drill-down Modal -->
+    <div id="drilldown-modal" class="modal-overlay">
+        <div class="card glass modal-content"
+            style="padding: 2.5rem; border-radius: 32px; width: 650px; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 id="drilldown-title" style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="fas fa-list-check" style="color: var(--accent-blue);"></i> 項目別充足状況
+                </h2>
+                <button class="btn btn-xs btn-outline"
+                    onclick="document.getElementById('drilldown-modal').style.display='none'">閉じる</button>
+            </div>
+            <p id="drilldown-subtitle" style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+            </p>
+            <div id="drilldown-content" class="drill-down-list">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script>
         // Basic Navigation & View Switching
@@ -846,8 +913,88 @@
                         borderDash: [5, 5]
                     }]
                 },
-                options: { scales: { r: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { display: false }, suggestedMax: 100 } }, plugins: { legend: { labels: { color: '#fff' } } } }
+                options: {
+                    scales: {
+                        r: {
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { display: false },
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#fff' } }
+                    },
+                    onClick: (e) => {
+                        const activePoints = gapChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                        if (activePoints.length > 0) {
+                            const index = activePoints[0].index;
+                            const label = gapChart.data.labels[index];
+                            showDrillDown(label);
+                        }
+                    }
+                }
             });
+        }
+
+        const drillDownData = {
+            'ガバナンス': [
+                { title: 'サステナビリティ・リスク等の監視体制', desc: '取締役会が適切な監視責任を有しているか', ref: 'S1 第26項(a)', status: '充足', icon: 'fa-check-circle text-success' },
+                { title: '経営陣の役割と権限委譲', desc: '経営陣への具体的な管理責任の委譲状況', ref: 'S1 第26項(b)', status: '充足', icon: 'fa-check-circle text-success' },
+                { title: '開示方針の承認プロセス', desc: '取締役会による開示内容の承認状況', ref: 'S1 第26項(c)', status: '部分的', icon: 'fa-circle-exclamation text-warning' }
+            ],
+            '戦略': [
+                { title: '気候関連のリスクと機会の特定', desc: '短中長期にわたる重大なリスクの特定状況', ref: 'S2 第33項', status: '充足', icon: 'fa-check-circle text-success' },
+                { title: '財務的レジリエンスの評価', desc: 'シナリオ分析に基づく財務的影響の定量的評価', ref: 'S2 第34項', status: '未実施', icon: 'fa-circle-xmark text-danger' },
+                { title: '移行計画の策定', desc: '低炭素経済への移行に向けた具体的な戦略', ref: 'S2 第36項', status: '部分的', icon: 'fa-circle-exclamation text-warning' }
+            ],
+            'リスク管理': [
+                { title: '全社リスク管理との統合', desc: 'サステナビリティリスクが全社フレームワークに組み込まれているか', ref: 'S1 第31項', status: '充足', icon: 'fa-check-circle text-success' },
+                { title: '特定・評価・管理のプロセス', desc: 'リスクの優先順位付けと管理プロセスの明文化', ref: 'S1 第32項', status: '充足', icon: 'fa-check-circle text-success' }
+            ],
+            '指標と目標': [
+                { title: 'Scope 1 & 2 排出量', desc: '基準年度および当年度の排出実績', ref: 'S2 第56項', status: '充足', icon: 'fa-check-circle text-success' },
+                { title: 'Scope 3 カテゴリ別排出量', desc: '主要カテゴリの算定および開示', ref: 'S2 第57項', status: '部分的', icon: 'fa-circle-exclamation text-warning' }
+            ],
+            '財務影響': [
+                { title: '現在および将来の財務的影響', desc: '定量的・定性的な財務上の関連性の言及', ref: 'S1 第34項', status: '未実施', icon: 'fa-circle-xmark text-danger' }
+            ],
+            'データ信頼性': [
+                { title: '算定手法と仮定', desc: 'GHGプロトコル等に基づく算定根拠の明示', ref: 'S2 第59項', status: '充足', icon: 'fa-check-circle text-success' },
+                { title: '第三者保証の有無', desc: 'データの客観的信頼性の担保状況', ref: '独自基準', status: '充足', icon: 'fa-check-circle text-success' }
+            ]
+        };
+
+        function showDrillDown(pillar) {
+            const modal = document.getElementById('drilldown-modal');
+            const title = document.getElementById('drilldown-title');
+            const subtitle = document.getElementById('drilldown-subtitle');
+            const content = document.getElementById('drilldown-content');
+
+            title.innerHTML = `<i class="fas fa-search-plus" style="color: var(--accent-blue);"></i> SSBJドリルダウン: ${pillar}`;
+            subtitle.textContent = `SSBJ基準に対する「${pillar}」クラスターの詳細充足状況を表示しています。`;
+
+            const items = drillDownData[pillar] || [];
+            content.innerHTML = items.map(item => `
+                <div class="drill-item">
+                    <i class="fas ${item.icon}"></i>
+                    <div class="drill-content">
+                        <div class="drill-title">${item.title}</div>
+                        <div class="drill-desc">${item.desc}</div>
+                        <div class="drill-meta">
+                            <span>準拠条項: ${item.ref}</span>
+                            <span class="drill-status" style="color: ${getStatusColor(item.status)}">${item.status}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            modal.style.display = 'flex';
+        }
+
+        function getStatusColor(status) {
+            if (status === '充足') return '#10b981';
+            if (status === '部分的') return '#f59e0b';
+            return '#ef4444';
         }
 
         function initSimChart() {
